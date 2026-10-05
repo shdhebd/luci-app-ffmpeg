@@ -3,15 +3,23 @@
 		"description": "Grant access to the FFmpeg task manager",
 		"read": {
 			"ubus": {
-				"ffmpeg": [ "status", "log" ]
+				"ffmpeg": [ "status", "log", "encoders", "exitcode", "config", "probe" ]
 			},
-			"uci": [ "ffmpeg" ]
+			"uci": [ "ffmpeg" ],
+			"cgi-io": [ "download" ],
+			"file": {
+				"/tmp/ffmpeg-convert.out*": [ "read" ]
+			}
 		},
 		"write": {
 			"ubus": {
-				"ffmpeg": [ "control" ]
+				"ffmpeg": [ "control", "configure" ]
 			},
-			"uci": [ "ffmpeg" ]
+			"uci": [ "ffmpeg" ],
+			"cgi-io": [ "upload" ],
+			"file": {
+				"/tmp/ffmpeg-convert.in*": [ "write" ]
+			}
 		}
 	}
 }

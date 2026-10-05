@@ -15,8 +15,140 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+msgid "(failed to read)"
+msgstr "（讀取失敗）"
+
+msgid "(this section does not exist)"
+msgstr "（該段不存在）"
+
+msgid "1. Source file"
+msgstr "1. 來源檔案"
+
+msgid "2. Conversion parameters"
+msgstr "2. 轉碼參數"
+
+msgid "3. Run and download"
+msgstr "3. 執行與下載"
+
 msgid "Actions"
 msgstr "操作"
+
+msgid "Browse…"
+msgstr "瀏覽…"
+
+msgid "Conversion failed."
+msgstr "轉碼失敗。"
+
+msgid "Conversion finished."
+msgstr "轉碼完成。"
+
+msgid "Conversion started."
+msgstr "轉碼已開始。"
+
+msgid "Conversion stopped."
+msgstr "轉碼已停止。"
+
+msgid "Download result"
+msgstr "下載結果"
+
+msgid "Failed to save the conversion settings."
+msgstr "儲存轉碼設定失敗。"
+
+msgid "ffmpeg exited with code %s."
+msgstr "ffmpeg 結束碼為 %s。"
+
+msgid "ffmpeg produced no output."
+msgstr "ffmpeg 沒有產生任何輸出。"
+
+msgid "File conversion"
+msgstr "檔案轉碼"
+
+msgid "Idle"
+msgstr "閒置"
+
+msgid "No audio or video stream was detected."
+msgstr "沒有偵測到音訊或視訊串流。"
+
+msgid "No file has been uploaded yet."
+msgstr "尚未上傳檔案。"
+
+msgid "This device can decode this file, so re-encoding is available."
+msgstr "本機可以解碼這個檔案，可以使用重新編碼。"
+
+msgid "This device cannot decode this file. Only “Copy (no re-encode)” will work; any re-encode will fail."
+msgstr "本機無法解碼這個檔案。只有「複製（不重新編碼）」可用，任何重新編碼都會失敗。"
+
+msgid "Video"
+msgstr "視訊"
+
+msgid "Only encoders this device can actually use are listed. If H.264/H.265 are missing, this ffmpeg build cannot encode them."
+msgstr "只列出本機實際可用的編碼器。如果沒有 H.264/H.265，表示這個 ffmpeg 編譯版本不支援它們。"
+
+msgid "Output container"
+msgstr "輸出容器"
+
+msgid "Please upload a source file first."
+msgstr "請先上傳來源檔案。"
+
+msgid "Running…"
+msgstr "執行中…"
+
+msgid "Start conversion"
+msgstr "開始轉碼"
+
+msgid "Settings were not saved (the section is still empty)."
+msgstr "設定未能儲存（設定段仍是空的）。"
+
+msgid "Starting conversion…"
+msgstr "正在開始轉碼…"
+
+msgid "The conversion runs on the router. Keep this page open to follow the progress."
+msgstr "轉碼在路由器上進行，保持本頁面開啟可查看進度。"
+
+msgid "No file selected."
+msgstr "尚未選擇檔案。"
+
+msgid "Stopping…"
+msgstr "正在停止…"
+
+msgid "The file is uploaded into the router RAM disk and never written to flash."
+msgstr "檔案會先上傳到路由器的記憶體磁碟，不會寫入快閃記憶體。"
+
+msgid "Access to the upload path was denied by ACL."
+msgstr "上傳目標路徑被 ACL 拒絕。"
+
+msgid "FFV1 (lossless)"
+msgstr "FFV1（無損）"
+
+msgid "H.264 (hardware, v4l2m2m)"
+msgstr "H.264（硬體編碼，v4l2m2m）"
+
+msgid "H.265 (hardware, v4l2m2m)"
+msgstr "H.265（硬體編碼，v4l2m2m）"
+
+msgid "I/O failure while writing the file."
+msgstr "寫入檔案時發生 I/O 錯誤。"
+
+msgid "Internal program failure."
+msgstr "程式內部錯誤。"
+
+msgid "Upload failed."
+msgstr "上傳失敗。"
+
+msgid "Upload permission denied."
+msgstr "沒有上傳權限。"
+
+msgid "Upload"
+msgstr "上傳"
+
+msgid "Upload a file, convert it with FFmpeg on the router, then download the result. The settings below are stored as a normal task named \"convert\"."
+msgstr "上傳檔案後用路由器上的 FFmpeg 轉碼，再下載結果。下面的設定會儲存成一個名為 \"convert\" 的一般任務。"
+
+msgid "Uploaded"
+msgstr "已上傳"
+
+msgid "Uploading…"
+msgstr "正在上傳…"
 
 msgid "Add a task"
 msgstr "新增任務"
@@ -89,6 +221,12 @@ msgstr "任務日誌"
 
 msgid "The log is empty."
 msgstr "日誌是空的。"
+
+msgid "Analyzing the file…"
+msgstr "正在分析檔案…"
+
+msgid "Audio"
+msgstr "音訊"
 
 msgid "Audio bitrate"
 msgstr "音訊位元率"

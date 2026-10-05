@@ -15,8 +15,169 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "(failed to read)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "(this section does not exist)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "1. Source file"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "2. Conversion parameters"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "3. Run and download"
+msgstr ""
+
 #: htdocs/luci-static/resources/view/ffmpeg/overview.js
 msgid "Actions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Browse…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Conversion failed."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Conversion finished."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Conversion started."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Conversion stopped."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Download result"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Failed to save the conversion settings."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "ffmpeg exited with code %s."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "ffmpeg produced no output."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+#: root/usr/share/luci/menu.d/luci-app-ffmpeg.json
+msgid "File conversion"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Idle"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "No file has been uploaded yet."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Only encoders this device can actually use are listed. If H.264/H.265 are missing, this ffmpeg build cannot encode them."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Output container"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Please upload a source file first."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Running…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Start conversion"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Settings were not saved (the section is still empty)."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Starting conversion…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "The conversion runs on the router. Keep this page open to follow the progress."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "No file selected."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Stopping…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "The file is uploaded into the router RAM disk and never written to flash."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Access to the upload path was denied by ACL."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "FFV1 (lossless)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "H.264 (hardware, v4l2m2m)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "H.265 (hardware, v4l2m2m)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "I/O failure while writing the file."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Internal program failure."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Upload failed."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Upload permission denied."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Upload"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Uploading…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Upload a file, convert it with FFmpeg on the router, then download the result. The settings below are stored as a normal task named \"convert\"."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Uploaded"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/ffmpeg/overview.js
@@ -113,6 +274,14 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/ffmpeg/overview.js
 msgid "The log is empty."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Analyzing the file…"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Audio"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/ffmpeg/tasks.js
@@ -217,6 +386,26 @@ msgstr ""
 
 #: htdocs/luci-static/resources/view/ffmpeg/tasks.js
 msgid "Verbose"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "No audio or video stream was detected."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "No file has been uploaded yet."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "This device can decode this file, so re-encoding is available."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "This device cannot decode this file. Only “Copy (no re-encode)” will work; any re-encode will fail."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/convert.js
+msgid "Video"
 msgstr ""
 
 #: htdocs/luci-static/resources/view/ffmpeg/tasks.js

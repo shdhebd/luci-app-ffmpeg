@@ -45,10 +45,27 @@ read_pid() {
 	echo "$__pid"
 }
 
+# 上一次运行的退出码（由包装进程在 ffmpeg 结束后写入）
+read_exit_code() {
+	local __rc
+	[ -f "$RUN_DIR/$1.exit" ] || return 0
+	read -r __rc < "$RUN_DIR/$1.exit" 2>/dev/null
+	echo "$__rc"
+}
+
 is_running() {
 	local __pid
 	__pid="$(read_pid "$1")"
-	[ -n "$__pid" ] && kill -0 "$__pid" 2>/dev/null
+	[ -n "$__pid" ] || return 1
+	[ -d "/proc/$__pid" ] || return 1
+
+	# 关键：确认这个 PID 确实还是我们的 ffmpeg。
+	# PID 会被内核复用，若只判断「进程存在」，残留的 PID 文件
+	# 可能指向已被回收并重新分配给其它守护进程（如 rpcd）的号，
+	# 那样 kill 就会误杀无关进程。
+	grep -qa 'ffmpeg' "/proc/$__pid/cmdline" 2>/dev/null || return 1
+
+	return 0
 }
 
 # ---------------------------------------------------------------------------
@@ -92,6 +109,9 @@ start_task() {
 
 	logfile="$logdir/$section.log"
 	pidfile="$RUN_DIR/$section.pid"
+
+	# 清掉上一次的退出码，避免前端读到陈旧结果
+	rm -f "$RUN_DIR/$section.exit" 2>/dev/null
 
 	# 每次启动轮转日志，保证 Web 界面读取的日志不会无限增长
 	[ -f "$logfile" ] && mv -f "$logfile" "$logfile.1" 2>/dev/null
@@ -139,11 +159,26 @@ start_task() {
 
 		set -- "$@" "$output"
 
-		exec "$binary" "$@"
-	) >>"$logfile" 2>&1 &
+		# 在包装进程里跑 ffmpeg，这样能 wait 到它的退出码。
+		# 用 exec 的话 PID 更直观，但父进程一退出就再也拿不到退出码了，
+		# 前端只能靠猜日志判断成败——那正是「失败却报成功」的根源。
+		"$binary" "$@" >>"$logfile" 2>&1 &
+		ffpid=$!
+		echo "$ffpid" > "$pidfile"
+		date +%s >> "$pidfile" 2>/dev/null
 
-	echo "$!" > "$pidfile"
-	date +%s >> "$pidfile" 2>/dev/null
+		wait "$ffpid"
+		ffrc=$?
+		echo "$ffrc" > "$RUN_DIR/$section.exit" 2>/dev/null
+		rm -f "$pidfile" 2>/dev/null
+	) &
+
+	# 等包装进程把 ffmpeg 的 PID 写进 pid 文件
+	local i=0
+	while [ "$i" -lt 10 ] && [ ! -f "$pidfile" ]; do
+		sleep 1
+		i=$((i + 1))
+	done
 
 	# 给进程一点时间确认是否真正起来了
 	sleep 1
@@ -152,8 +187,17 @@ start_task() {
 		return 0
 	fi
 
-	rm -f "$pidfile"
-	logger -t ffmpeg-ctl "task '$section' failed to start, see $logfile"
+	# 进程已经退出：读包装进程写下的真实退出码。
+	# 不再用 wait，因为 ffmpeg 现在是包装进程的子进程，不是本进程的。
+	local rc
+	rc="$(read_exit_code "$section")"
+
+	if [ "$rc" = "0" ]; then
+		logger -t ffmpeg-ctl "task '$section' finished (exit 0)"
+		return 0
+	fi
+
+	logger -t ffmpeg-ctl "task '$section' failed (exit ${rc:-unknown}), see $logfile"
 	# 把失败原因回显给调用方（LuCI 会展示在通知里）
 	[ -f "$logfile" ] && tail -n 15 "$logfile" 2>/dev/null
 	return 1
@@ -164,13 +208,14 @@ stop_task() {
 
 	pid="$(read_pid "$section")"
 
-	if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+	# 必须用 is_running 而不是 kill -0：只有确认该 PID 仍是我们的 ffmpeg 才敢发信号
+	if is_running "$section"; then
 		kill -TERM "$pid" 2>/dev/null
-		while [ "$i" -lt 3 ] && kill -0 "$pid" 2>/dev/null; do
+		while [ "$i" -lt 5 ] && is_running "$section"; do
 			sleep 1
 			i=$((i + 1))
 		done
-		if kill -0 "$pid" 2>/dev/null; then
+		if is_running "$section"; then
 			kill -KILL "$pid" 2>/dev/null
 		fi
 		logger -t ffmpeg-ctl "task '$section' stopped (pid $pid)"
@@ -253,8 +298,84 @@ case "$1" in
 			echo "stopped"
 		fi
 		;;
+	probe)
+		# 探测一个媒体文件的流编码，并实测本机能否解码它。
+		#
+		# 「能否解码」必须实测而不是查解码器列表：h264 这类编码器在列表里
+		# 可能只有 *_v4l2m2m 硬件实现，而没有 v4l2 设备节点的机器（虚拟机、
+		# 多数 x86）一解码就失败。实测一次能直接给出对当前文件可用的结论。
+		[ -n "$2" ] || { echo "usage: $0 probe <path>" >&2; exit 1; }
+		probe_path="$2"
+
+		# 只允许探测上传目录下的文件，避免被用来读取任意文件的信息
+		case "$probe_path" in
+			/tmp/*) ;;
+			*) echo "invalid path" >&2; exit 1 ;;
+		esac
+
+		[ -f "$probe_path" ] || { echo "missing" >&2; exit 1; }
+
+		config_load ffmpeg
+		config_get binary globals binary "$DEFAULT_BINARY"
+		[ -n "$binary" ] || binary="$DEFAULT_BINARY"
+
+		"$binary" -hide_banner -i "$probe_path" 2>&1 |
+			sed -n 's/.*Stream #0:[0-9]*.*: Video: \([A-Za-z0-9_]*\).*/V \1/p;
+			        s/.*Stream #0:[0-9]*.*: Audio: \([A-Za-z0-9_]*\).*/A \1/p'
+
+		# 只解一帧，足够判断解码链路是否可用，代价很小
+		if "$binary" -hide_banner -loglevel error -nostdin \
+			-i "$probe_path" -frames:v 1 -f null - >/dev/null 2>&1; then
+			echo "D yes"
+		else
+			echo "D no"
+		fi
+		;;
+	show)
+		# 输出某段在 /etc/config/ffmpeg 里的真实内容。
+		# 前端用它做诊断：LuCI 的 uci 缓存和落盘内容可能不一致，
+		# 只有读文件才能确认参数到底有没有写进去。
+		[ -n "$2" ] || { echo "usage: $0 show <section>" >&2; exit 1; }
+		uci show "ffmpeg.$2" 2>/dev/null
+		;;
+	encoders)
+		# 输出 ffmpeg 支持的编码器列表（原始文本，由调用方解析）
+		config_load ffmpeg
+		config_get binary globals binary "$DEFAULT_BINARY"
+		[ -n "$binary" ] || binary="$DEFAULT_BINARY"
+		"$binary" -hide_banner -encoders 2>/dev/null
+		;;
+	probe-codecs)
+		# 逐个「真跑一次」测试编码器是否可用。
+		#
+		# 只看 -encoders 列表是不够的：h264_v4l2m2m / hevc_v4l2m2m 会出现在
+		# 列表里，但在没有 v4l2 设备节点的机器（虚拟机、多数 x86）上
+		# 一编码就报 "Could not find a valid device"。
+		# 这里对每个候选做一次 0.1 秒的极短编码，只有真正跑通的才输出。
+		config_load ffmpeg
+		config_get binary globals binary "$DEFAULT_BINARY"
+		[ -n "$binary" ] || binary="$DEFAULT_BINARY"
+
+		for enc in libx264 libx265 h264_v4l2m2m hevc_v4l2m2m \
+		           mpeg4 mpeg2video mpeg1video h263 mjpeg ffv1 prores \
+		           libvpx libvpx-vp9; do
+			if "$binary" -hide_banner -loglevel error -nostdin \
+				-f lavfi -i color=c=black:s=64x64:d=0.1 \
+				-c:v "$enc" -frames:v 1 -f null - >/dev/null 2>&1; then
+				echo "V $enc"
+			fi
+		done
+
+		for enc in aac libfdk_aac libmp3lame ac3 eac3 libopus libvorbis flac mp2; do
+			if "$binary" -hide_banner -loglevel error -nostdin \
+				-f lavfi -i anullsrc=r=44100:cl=mono:d=0.1 \
+				-c:a "$enc" -frames:a 1 -f null - >/dev/null 2>&1; then
+				echo "A $enc"
+			fi
+		done
+		;;
 	*)
-		echo "usage: $0 {start|stop|restart|stopall|autostart|status} [section]" >&2
+		echo "usage: $0 {start|stop|restart|stopall|autostart|status|show|probe|encoders|probe-codecs} [arg]" >&2
 		exit 1
 		;;
 esac

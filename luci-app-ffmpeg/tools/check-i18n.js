@@ -28,6 +28,8 @@ function add(str, file) {
 	src.get(str).add(file);
 }
 
+const warnings = [];
+
 for (const f of files) {
 	const rel = path.relative(root, f).replace(/\\/g, '/');
 
@@ -40,10 +42,28 @@ for (const f of files) {
 
 	if (isView) {
 		const text = fs.readFileSync(f, 'utf8');
+
+		// 1) 正常形态：_('单一字面量')
 		const re = /_\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*\)/g;
 		let m;
 		while ((m = re.exec(text)) !== null)
 			add(m[2].replace(/\\(['"\\])/g, '$1'), rel);
+
+		// 2) 拼接形态：_('a' + 'b')。
+		//    i18n-scan.pl 只提取字面量，这种写法提取不到，会在界面上留英文原文，
+		//    而旧版的正则同样匹配不到，于是静默漏掉——必须显式报出来。
+		const concatRe = /_\(\s*(['"])(?:\\.|(?!\1)[^\\])*\1\s*\+/g;
+		while ((m = concatRe.exec(text)) !== null) {
+			const line = text.substring(0, m.index).split('\n').length;
+			warnings.push(`${rel}:${line}  _() 里拼接了多个字符串，i18n-scan 提取不到，请改成单个字面量`);
+		}
+
+		// 3) 非字面量形态：_(someVariable)
+		const varRe = /_\(\s*([A-Za-z_$][\w$.]*)\s*[,)]/g;
+		while ((m = varRe.exec(text)) !== null) {
+			const line = text.substring(0, m.index).split('\n').length;
+			warnings.push(`${rel}:${line}  _() 的参数是变量 (${m[1]})，不会被提取`);
+		}
 	}
 	else {
 		const json = JSON.parse(fs.readFileSync(f, 'utf8'));
@@ -122,6 +142,16 @@ for (const lang of [ 'zh_Hans', 'zh_Hant' ]) {
 
 	const stale = [...pairs.keys()].filter(s => !src.has(s)).sort();
 	report(`${lang}: 源码中已不存在的条目`, stale);
+}
+
+if (warnings.length) {
+	problems += warnings.length;
+	console.log(`FAIL 无法被 i18n-scan 提取的 _() 用法 (${warnings.length} 处)`);
+	for (const w of warnings)
+		console.log(`       - ${w}`);
+}
+else {
+	console.log('OK   所有 _() 都是可提取的单一字面量');
 }
 
 console.log(problems === 0 ? '\n=== 全部检查通过 ===' : `\n=== 发现 ${problems} 个问题 ===`);
