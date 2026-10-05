@@ -1,0 +1,253 @@
+#!/usr/bin/ucode
+// SPDX-License-Identifier: Apache-2.0
+//
+// luci-app-ffmpeg - rpcd/ubus 后端。
+//
+// rpcd 会加载 /usr/share/rpcd/ucode/ 下的所有常规文件，脚本顶层返回的字典
+// 描述要注册的 ubus 对象，因此本文件注册的对象名由下面 return 里的键决定。
+//
+//   status()                 -> { "<section>": { running, pid, started } }
+//   log(section, lines)      -> { section, lines: [ ... ], truncated }
+//   control(action, section) -> { ok, code, output, running }
+//
+// 本脚本只做三件事: 读运行时状态、读日志尾部、把启停命令转发给
+// /usr/libexec/ffmpeg-ctl。所有 ffmpeg 参数的拼装都在 shell 侧完成。
+
+'use strict';
+
+const fs = require('fs');
+
+const CTL = '/usr/libexec/ffmpeg-ctl';
+const RUN_DIR = '/var/run/ffmpeg';
+const LOG_DIR = '/var/log/ffmpeg';
+
+// 单次最多读取 256 KiB 日志，避免超大文件吃满内存
+const LOG_READ_LIMIT = 262144;
+const MAX_LOG_LINES = 2000;
+
+// ---------------------------------------------------------------------------
+// 辅助函数
+// ---------------------------------------------------------------------------
+
+// rpcd 的 args 类型策略已经保证 section 是字符串，这里只做字符集白名单，
+// 用于阻止路径穿越（ffmpeg-ctl 侧还会再校验一次）。
+function valid_section(section) {
+	if (section == null || length(section) == 0)
+		return false;
+
+	return match(section, /^[A-Za-z0-9_]+$/) ? true : false;
+}
+
+// PID 文件为两行: 第一行 PID，第二行启动时间戳（epoch 秒）。
+// 两者都按字符串返回，由前端负责换算，避免在 ucode 侧做数字解析。
+function read_pidfile(section) {
+	if (!valid_section(section))
+		return null;
+
+	let path = RUN_DIR + '/' + section + '.pid';
+	let f = fs.open(path, 'r');
+
+	if (!f)
+		return null;
+
+	let lines = [];
+
+	// 注意: ucode 的 read('line') 在 EOF 时返回空字符串，读取出错时返回 null
+	for (let line = f.read('line'); line != null && length(line) > 0; line = f.read('line')) {
+		let v = trim(line);
+
+		if (length(v) > 0)
+			push(lines, v);
+	}
+
+	f.close();
+
+	if (length(lines) == 0)
+		return null;
+
+	// 进程已消失则视为未运行，并顺手清理残留的 PID 文件
+	if (!fs.stat('/proc/' + lines[0])) {
+		fs.unlink(path);
+		return null;
+	}
+
+	return {
+		pid: lines[0],
+		started: length(lines) > 1 ? lines[1] : ''
+	};
+}
+
+function exec_ctl(action, section) {
+	// 传数组给 popen 时 ucode 直接 execvp，不经过 shell，
+	// 参数不会被解释为 shell 语法。
+	let argv = [ CTL, action ];
+
+	if (section)
+		push(argv, section);
+
+	let p = fs.popen(argv, 'r');
+
+	if (!p)
+		return { code: null, output: 'cannot execute ' + CTL };
+
+	let out = p.read('all');
+	let code = p.close();
+
+	return {
+		code: code,
+		output: out != null ? trim(out) : ''
+	};
+}
+
+function read_log(section, n) {
+	let path = LOG_DIR + '/' + section + '.log';
+	let st = fs.stat(path);
+	let empty = { lines: [], truncated: false };
+
+	if (!st || st.type != 'file')
+		return empty;
+
+	let f = fs.open(path, 'r');
+
+	if (!f)
+		return empty;
+
+	let truncated = false;
+
+	if (st.size > LOG_READ_LIMIT) {
+		// seek(offset, position) 的 position 是数字: 0=文件开头, 1=当前位置, 2=文件末尾
+		f.seek(st.size - LOG_READ_LIMIT, 0);
+		truncated = true;
+	}
+
+	let data = f.read('all');
+	f.close();
+
+	if (data == null)
+		return empty;
+
+	let all = split(data, '\n');
+
+	// 去掉尾随空行
+	while (length(all) > 0 && trim(all[length(all) - 1]) == '')
+		pop(all);
+
+	let start = length(all) - n;
+
+	if (start < 0)
+		start = 0;
+	else if (start > 0)
+		truncated = true;
+
+	let out = [];
+
+	for (let i = start; i < length(all); i++)
+		push(out, all[i]);
+
+	return { lines: out, truncated: truncated };
+}
+
+// ---------------------------------------------------------------------------
+// ubus 方法
+// ---------------------------------------------------------------------------
+
+return {
+	status: {
+		call: function() {
+			let res = {};
+			let names = fs.lsdir(RUN_DIR);
+
+			if (!names)
+				return res;
+
+			for (let i = 0; i < length(names); i++) {
+				let m = match(names[i], /^([A-Za-z0-9_]+)\.pid$/);
+
+				if (!m)
+					continue;
+
+				let info = read_pidfile(m[1]);
+
+				if (!info)
+					continue;
+
+				res[m[1]] = {
+					running: true,
+					pid: info.pid,
+					started: info.started
+				};
+			}
+
+			return res;
+		}
+	},
+
+	log: {
+		args: { section: '', lines: 200 },
+		call: function(req) {
+			let section = req.args.section;
+
+			if (!valid_section(section))
+				return { section: '', lines: [], truncated: false };
+
+			// rpcd 已按 args 声明校验过类型，lines 必定是整数
+			let n = req.args.lines;
+
+			if (n == null || n < 1)
+				n = 200;
+
+			if (n > MAX_LOG_LINES)
+				n = MAX_LOG_LINES;
+
+			let r = read_log(section, n);
+
+			return {
+				section: section,
+				lines: r.lines,
+				truncated: r.truncated
+			};
+		}
+	},
+
+	control: {
+		args: { action: '', section: '' },
+		call: function(req) {
+			let action = req.args.action || '';
+			let section = req.args.section || '';
+
+			switch (action) {
+			case 'start':
+			case 'stop':
+			case 'restart':
+				if (!valid_section(section))
+					return { ok: false, code: -1, output: 'invalid section name', running: false };
+				break;
+
+			case 'stopall':
+				section = '';
+				break;
+
+			default:
+				return { ok: false, code: -1, output: 'invalid action', running: false };
+			}
+
+			let r = exec_ctl(action, section);
+			let running = section ? !!read_pidfile(section) : false;
+			let ok;
+
+			// proc.close() 返回子进程退出码（被信号终止时为负数），出错时为 null。
+			// 万一拿不到退出码，就退回到用真实运行状态判断结果。
+			if (r.code == null)
+				ok = section ? (action == 'stop' ? !running : running) : true;
+			else
+				ok = (r.code == 0);
+
+			return {
+				ok: ok,
+				code: r.code == null ? -1 : r.code,
+				output: r.output,
+				running: running
+			};
+		}
+	}
+};

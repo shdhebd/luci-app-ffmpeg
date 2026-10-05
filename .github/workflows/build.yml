@@ -1,0 +1,107 @@
+name: Build OpenWrt packages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+# 只读权限就够了，编译产物通过 artifact 下载，不需要写回仓库
+permissions:
+  contents: read
+
+# 同一分支上新的推送会取消还在跑的旧构建
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: OpenWrt ${{ matrix.openwrt }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # 本应用是纯 shell + JS，Makefile 里 LUCI_PKGARCH:=all，
+        # 编出来的是架构无关的 _all.ipk，任何架构的设备都能装，
+        # 所以只需要 x86/64 这一个 target 的 SDK。
+        # 列两个 OpenWrt 版本是为了让老版本用户也能拿到对应构建。
+        openwrt:
+          - '24.10.5'
+          - '23.05.5'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download OpenWrt SDK
+        env:
+          OPENWRT_VERSION: ${{ matrix.openwrt }}
+        run: |
+          set -euo pipefail
+          BASE="https://downloads.openwrt.org/releases/${OPENWRT_VERSION}/targets/x86/64/"
+          FILE="$(curl -fsSL "$BASE" | grep -oE 'openwrt-sdk-[^"<>]*Linux-x86_64\.tar\.(xz|zst)' | head -n1)"
+          if [ -z "$FILE" ]; then
+            echo "::error::在 $BASE 中找不到 SDK 文件"
+            exit 1
+          fi
+          echo "下载 ${FILE}"
+          curl -fsSL -o "$FILE" "$BASE$FILE"
+          mkdir -p sdk
+          tar -xf "$FILE" -C sdk --strip-components=1
+          rm -f "$FILE"
+          echo "SDK 内容: $(ls sdk | tr '\n' ' ')"
+
+      - name: Update feeds and inject package
+        run: |
+          set -euo pipefail
+          cd sdk
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+          cp -r "${GITHUB_WORKSPACE}/luci-app-ffmpeg" package/luci-app-ffmpeg
+          echo "已注入的包目录:"
+          ls package/luci-app-ffmpeg
+
+      - name: Configure
+        run: |
+          set -euo pipefail
+          cd sdk
+          {
+            echo 'CONFIG_PACKAGE_luci-base=m'
+            echo 'CONFIG_PACKAGE_luci-app-ffmpeg=m'
+            echo 'CONFIG_LUCI_LANG_zh_Hans=y'
+            echo 'CONFIG_LUCI_LANG_zh_Hant=y'
+          } >> .config
+          make defconfig
+          echo '--- 生效的相关配置 ---'
+          grep -E 'luci-app-ffmpeg|luci-i18n-ffmpeg|LUCI_LANG_zh' .config || true
+
+      - name: Compile
+        run: |
+          set -euo pipefail
+          cd sdk
+          make package/luci-app-ffmpeg/compile V=s -j"$(nproc)"
+
+      - name: List built packages
+        if: always()
+        run: |
+          echo '--- bin/packages 下的 ipk ---'
+          find "${GITHUB_WORKSPACE}/sdk/bin/packages" -name '*.ipk' \
+            -printf '%p  (%s bytes)\n' 2>/dev/null || echo '(没有生成 ipk)'
+
+      - name: Upload build logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ matrix.openwrt }}
+          path: sdk/logs
+          if-no-files-found: ignore
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: ipk-${{ matrix.openwrt }}
+          path: sdk/bin/packages/**/*.ipk
+          if-no-files-found: error

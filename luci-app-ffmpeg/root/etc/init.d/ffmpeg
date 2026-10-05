@@ -1,0 +1,32 @@
+#!/bin/sh /etc/rc.common
+# SPDX-License-Identifier: Apache-2.0
+#
+# luci-app-ffmpeg - 开机自动启动标记了 autostart 的任务，关机时全部停止。
+
+START=95
+STOP=10
+
+CTL="/usr/libexec/ffmpeg-ctl"
+
+boot() {
+	start "$@"
+}
+
+start() {
+	[ -x "$CTL" ] || return 0
+	"$CTL" autostart
+}
+
+stop() {
+	[ -x "$CTL" ] || return 0
+	"$CTL" stopall
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	restart
+}

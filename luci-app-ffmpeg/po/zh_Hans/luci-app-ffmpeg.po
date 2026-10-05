@@ -1,0 +1,217 @@
+# Simplified Chinese translation for luci-app-ffmpeg
+# This file is distributed under the same license as the luci-app-ffmpeg package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-ffmpeg\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"Last-Translator: luci-app-ffmpeg contributors\n"
+"Language-Team: Chinese (Simplified)\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Actions"
+msgstr "操作"
+
+msgid "Add a task"
+msgstr "添加任务"
+
+msgid "Applying changes..."
+msgstr "正在应用更改…"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "FFmpeg Overview"
+msgstr "FFmpeg 总览"
+
+msgid "Input"
+msgstr "输入"
+
+msgid "Loading..."
+msgstr "正在加载…"
+
+msgid "Log"
+msgstr "日志"
+
+msgid "No tasks have been configured yet."
+msgstr "尚未配置任何任务。"
+
+msgid "Operation completed."
+msgstr "操作已完成。"
+
+msgid "Operation failed."
+msgstr "操作失败。"
+
+msgid "Output"
+msgstr "输出"
+
+msgid "Please wait"
+msgstr "请稍候"
+
+msgid "Read-only access"
+msgstr "只读权限"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Running: %s / %s"
+msgstr "运行中：%s / %s"
+
+msgid "Runtime state of every configured FFmpeg task. The list refreshes automatically."
+msgstr "所有已配置 FFmpeg 任务的运行状态，列表会自动刷新。"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "Task"
+msgstr "任务"
+
+msgid "Task log"
+msgstr "任务日志"
+
+msgid "The log is empty."
+msgstr "日志为空。"
+
+msgid "Audio bitrate"
+msgstr "音频码率"
+
+msgid "Audio codec"
+msgstr "音频编码"
+
+msgid "Copy (no re-encode)"
+msgstr "复制（不重新编码）"
+
+msgid "Debug"
+msgstr "调试"
+
+msgid "Disable audio"
+msgstr "禁用音频"
+
+msgid "Disable video"
+msgstr "禁用视频"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Every task is one ffmpeg process. Changing a task requires a restart of that task to take effect."
+msgstr "每个任务对应一个 ffmpeg 进程。修改任务后需要重启该任务才会生效。"
+
+msgid "Extra arguments"
+msgstr "额外参数"
+
+msgid "FFmpeg Tasks"
+msgstr "FFmpeg 任务"
+
+msgid "Frame rate"
+msgstr "帧率"
+
+msgid "Info"
+msgstr "信息"
+
+msgid "Input source"
+msgstr "输入源"
+
+msgid "Log level"
+msgstr "日志级别"
+
+msgid "My task"
+msgstr "我的任务"
+
+msgid "Output format"
+msgstr "输出格式"
+
+msgid "Output target"
+msgstr "输出目标"
+
+msgid "Overwrite output"
+msgstr "覆盖输出文件"
+
+msgid "Quiet"
+msgstr "静默"
+
+msgid "Raw ffmpeg options appended right before the output target."
+msgstr "追加在输出目标之前的原始 ffmpeg 参数。"
+
+msgid "Scale"
+msgstr "分辨率"
+
+msgid "Start on boot"
+msgstr "开机自启"
+
+msgid "Task name"
+msgstr "任务名称"
+
+msgid "Tasks"
+msgstr "任务"
+
+msgid "Verbose"
+msgstr "详细"
+
+msgid "Video bitrate"
+msgstr "视频码率"
+
+msgid "Video codec"
+msgstr "视频编码"
+
+msgid "Warning"
+msgstr "警告"
+
+msgid "Absolute path of the ffmpeg executable."
+msgstr "ffmpeg 可执行文件的绝对路径。"
+
+msgid "Each task is started from this directory."
+msgstr "每个任务都在该目录下启动。"
+
+msgid "Enable FFmpeg management"
+msgstr "启用 FFmpeg 管理"
+
+msgid "FFmpeg Settings"
+msgstr "FFmpeg 设置"
+
+msgid "FFmpeg binary"
+msgstr "FFmpeg 可执行文件"
+
+msgid "Global settings"
+msgstr "全局设置"
+
+msgid "Global settings shared by every task."
+msgstr "所有任务共用的全局设置。"
+
+msgid "Log directory"
+msgstr "日志目录"
+
+msgid "One <section>.log file is written per task."
+msgstr "每个任务对应一个 <section>.log 日志文件。"
+
+msgid "When disabled, no task is started on boot."
+msgstr "关闭后，开机时不会启动任何任务。"
+
+msgid "Working directory"
+msgstr "工作目录"
+
+msgid "FFmpeg"
+msgstr "FFmpeg"
+
+msgid "Settings"
+msgstr "设置"

@@ -1,0 +1,262 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+#
+# ffmpeg-ctl - luci-app-ffmpeg 的任务控制脚本
+#
+# 用法:
+#   ffmpeg-ctl start   <section>   启动单个任务
+#   ffmpeg-ctl stop    <section>   停止单个任务
+#   ffmpeg-ctl restart <section>   重启单个任务
+#   ffmpeg-ctl stopall             停止全部任务
+#   ffmpeg-ctl autostart           启动所有 autostart=1 的任务（开机时调用）
+#   ffmpeg-ctl status  <section>   输出 running / stopped
+#
+# 约定:
+#   运行时 PID  -> /var/run/ffmpeg/<section>.pid（两行: PID、启动时间戳）
+#   任务日志    -> <logdir>/<section>.log（每次启动前轮转一次为 .log.1）
+
+. /lib/functions.sh
+
+# 本脚本由 rpcd/ubus 调用，显式固定 PATH，避免继承到意外的搜索路径
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+
+RUN_DIR="/var/run/ffmpeg"
+DEFAULT_LOG_DIR="/var/log/ffmpeg"
+DEFAULT_WORK_DIR="/tmp/ffmpeg"
+DEFAULT_BINARY="/usr/bin/ffmpeg"
+
+# ---------------------------------------------------------------------------
+# 工具函数
+# ---------------------------------------------------------------------------
+
+# section 名只允许字母、数字和下划线，防止路径穿越（如 ../../etc/xxx）
+valid_section() {
+	case "$1" in
+		''|*[!A-Za-z0-9_]*) return 1 ;;
+	esac
+	return 0
+}
+
+read_pid() {
+	local __pid
+	[ -f "$RUN_DIR/$1.pid" ] || return 0
+	read -r __pid < "$RUN_DIR/$1.pid" 2>/dev/null
+	echo "$__pid"
+}
+
+is_running() {
+	local __pid
+	__pid="$(read_pid "$1")"
+	[ -n "$__pid" ] && kill -0 "$__pid" 2>/dev/null
+}
+
+# ---------------------------------------------------------------------------
+# 启动 / 停止
+# ---------------------------------------------------------------------------
+
+start_task() {
+	local section="$1" binary workdir logdir
+	local input output vcodec video_bitrate acodec audio_bitrate
+	local scale fps format loglevel extra overwrite
+	local logfile pidfile
+
+	is_running "$section" && return 0
+
+	config_get binary globals binary "$DEFAULT_BINARY"
+	config_get workdir globals workdir "$DEFAULT_WORK_DIR"
+	config_get logdir globals logdir "$DEFAULT_LOG_DIR"
+	[ -n "$binary" ]  || binary="$DEFAULT_BINARY"
+	[ -n "$workdir" ] || workdir="$DEFAULT_WORK_DIR"
+	[ -n "$logdir" ]  || logdir="$DEFAULT_LOG_DIR"
+
+	config_get      input         "$section" input
+	config_get      output        "$section" output
+	config_get      vcodec        "$section" video_codec
+	config_get      video_bitrate "$section" video_bitrate
+	config_get      acodec        "$section" audio_codec
+	config_get      audio_bitrate "$section" audio_bitrate
+	config_get      scale         "$section" scale
+	config_get      fps           "$section" fps
+	config_get      format        "$section" format
+	config_get      loglevel      "$section" loglevel warning
+	config_get      extra         "$section" extra_args
+	config_get_bool overwrite     "$section" overwrite 1
+
+	if [ -z "$input" ] || [ -z "$output" ]; then
+		logger -t ffmpeg-ctl "task '$section' not started: input or output is empty"
+		return 1
+	fi
+
+	mkdir -p "$workdir" "$logdir" "$RUN_DIR" 2>/dev/null
+
+	logfile="$logdir/$section.log"
+	pidfile="$RUN_DIR/$section.pid"
+
+	# 每次启动轮转日志，保证 Web 界面读取的日志不会无限增长
+	[ -f "$logfile" ] && mv -f "$logfile" "$logfile.1" 2>/dev/null
+
+	(
+		cd "$workdir" 2>/dev/null || cd /tmp
+
+		set -- -hide_banner -nostdin
+
+		[ -n "$loglevel" ] && set -- "$@" -loglevel "$loglevel"
+
+		if [ "$overwrite" = "1" ]; then
+			set -- "$@" -y
+		else
+			set -- "$@" -n
+		fi
+
+		set -- "$@" -i "$input"
+
+		if [ "$vcodec" = "none" ]; then
+			set -- "$@" -vn
+		elif [ -n "$vcodec" ]; then
+			set -- "$@" -c:v "$vcodec"
+		fi
+
+		[ -n "$video_bitrate" ] && set -- "$@" -b:v "$video_bitrate"
+
+		if [ "$acodec" = "none" ]; then
+			set -- "$@" -an
+		elif [ -n "$acodec" ]; then
+			set -- "$@" -c:a "$acodec"
+		fi
+
+		[ -n "$audio_bitrate" ] && set -- "$@" -b:a "$audio_bitrate"
+		[ -n "$scale" ]         && set -- "$@" -vf "scale=$scale"
+		[ -n "$fps" ]           && set -- "$@" -r "$fps"
+
+		# 额外参数按空格拆分，供用户追加自定义选项
+		if [ -n "$extra" ]; then
+			# shellcheck disable=SC2086
+			set -- "$@" $extra
+		fi
+
+		[ -n "$format" ] && set -- "$@" -f "$format"
+
+		set -- "$@" "$output"
+
+		exec "$binary" "$@"
+	) >>"$logfile" 2>&1 &
+
+	echo "$!" > "$pidfile"
+	date +%s >> "$pidfile" 2>/dev/null
+
+	# 给进程一点时间确认是否真正起来了
+	sleep 1
+	if is_running "$section"; then
+		logger -t ffmpeg-ctl "task '$section' started (pid $(read_pid "$section"))"
+		return 0
+	fi
+
+	rm -f "$pidfile"
+	logger -t ffmpeg-ctl "task '$section' failed to start, see $logfile"
+	# 把失败原因回显给调用方（LuCI 会展示在通知里）
+	[ -f "$logfile" ] && tail -n 15 "$logfile" 2>/dev/null
+	return 1
+}
+
+stop_task() {
+	local section="$1" pid i=0
+
+	pid="$(read_pid "$section")"
+
+	if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+		kill -TERM "$pid" 2>/dev/null
+		while [ "$i" -lt 3 ] && kill -0 "$pid" 2>/dev/null; do
+			sleep 1
+			i=$((i + 1))
+		done
+		if kill -0 "$pid" 2>/dev/null; then
+			kill -KILL "$pid" 2>/dev/null
+		fi
+		logger -t ffmpeg-ctl "task '$section' stopped (pid $pid)"
+	fi
+
+	rm -f "$RUN_DIR/$section.pid"
+	return 0
+}
+
+restart_task() {
+	stop_task "$1"
+	config_load ffmpeg
+	start_task "$1"
+}
+
+# ---------------------------------------------------------------------------
+# 批量操作
+# ---------------------------------------------------------------------------
+
+stopall() {
+	config_load ffmpeg
+	config_foreach stop_task task
+	return 0
+}
+
+autostart_task() {
+	local section="$1" enabled auto
+	config_get_bool enabled "$section" enabled 1
+	config_get_bool auto    "$section" autostart 0
+	[ "$enabled" -eq 1 ] || return 0
+	[ "$auto" -eq 1 ] || return 0
+	start_task "$section"
+}
+
+autostart() {
+	local enabled
+	config_load ffmpeg
+	config_get_bool enabled globals enabled 1
+	[ "$enabled" -eq 1 ] || return 0
+	config_foreach autostart_task task
+	return 0
+}
+
+# ---------------------------------------------------------------------------
+# 入口
+# ---------------------------------------------------------------------------
+
+# 需要 section 参数的命令统一先做白名单校验
+case "$1" in
+	start|stop|restart|status)
+		valid_section "$2" || { echo "invalid section name" >&2; exit 1; }
+		;;
+esac
+
+case "$1" in
+	start)
+		[ -n "$2" ] || { echo "usage: $0 start <section>" >&2; exit 1; }
+		config_load ffmpeg
+		start_task "$2"
+		;;
+	stop)
+		[ -n "$2" ] || { echo "usage: $0 stop <section>" >&2; exit 1; }
+		stop_task "$2"
+		;;
+	restart)
+		[ -n "$2" ] || { echo "usage: $0 restart <section>" >&2; exit 1; }
+		restart_task "$2"
+		;;
+	stopall)
+		stopall
+		;;
+	autostart)
+		autostart
+		;;
+	status)
+		[ -n "$2" ] || { echo "usage: $0 status <section>" >&2; exit 1; }
+		if is_running "$2"; then
+			echo "running"
+		else
+			echo "stopped"
+		fi
+		;;
+	*)
+		echo "usage: $0 {start|stop|restart|stopall|autostart|status} [section]" >&2
+		exit 1
+		;;
+esac
+
+exit $?

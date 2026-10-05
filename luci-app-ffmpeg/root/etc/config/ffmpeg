@@ -1,0 +1,29 @@
+# luci-app-ffmpeg - UCI 默认配置
+#
+# globals：全局设置（ffmpeg 路径、工作目录、日志目录、总开关）
+# task   ：一个 task 段对应一个 ffmpeg 进程
+
+config globals 'globals'
+	option enabled '1'
+	option binary '/usr/bin/ffmpeg'
+	option workdir '/tmp/ffmpeg'
+	option logdir '/var/log/ffmpeg'
+
+# 示例任务：默认关闭，避免安装后立刻占用 CPU。
+# 启用方式：把 enabled / autostart 打开，或在「总览」页手动点击「启动」。
+config task 'example'
+	option name '示例转码任务'
+	option enabled '0'
+	option autostart '0'
+	option input ''
+	option output ''
+	option video_codec 'copy'
+	option video_bitrate ''
+	option audio_codec 'copy'
+	option audio_bitrate ''
+	option scale ''
+	option fps ''
+	option format ''
+	option loglevel 'warning'
+	option overwrite '1'
+	option extra_args ''

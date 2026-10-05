@@ -1,0 +1,47 @@
+{
+	"admin/services/ffmpeg": {
+		"title": "FFmpeg",
+		"order": 60,
+		"action": {
+			"type": "view",
+			"path": "ffmpeg/overview"
+		},
+		"depends": {
+			"acl": {
+				"luci-app-ffmpeg": {
+					"read": true
+				}
+			}
+		}
+	},
+	"admin/services/ffmpeg/tasks": {
+		"title": "Tasks",
+		"order": 10,
+		"action": {
+			"type": "view",
+			"path": "ffmpeg/tasks"
+		},
+		"depends": {
+			"acl": {
+				"luci-app-ffmpeg": {
+					"write": true
+				}
+			}
+		}
+	},
+	"admin/services/ffmpeg/settings": {
+		"title": "Settings",
+		"order": 20,
+		"action": {
+			"type": "view",
+			"path": "ffmpeg/settings"
+		},
+		"depends": {
+			"acl": {
+				"luci-app-ffmpeg": {
+					"write": true
+				}
+			}
+		}
+	}
+}

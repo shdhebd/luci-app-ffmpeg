@@ -1,0 +1,17 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+#
+# luci-app-ffmpeg 安装后的默认动作。
+
+# 保证脚本具有可执行权限（不依赖打包时保留的权限位）
+chmod 0755 /usr/libexec/ffmpeg-ctl 2>/dev/null
+chmod 0755 /etc/init.d/ffmpeg 2>/dev/null
+chmod 0644 /usr/share/rpcd/ucode/ffmpeg 2>/dev/null
+
+# 运行时目录
+mkdir -p /var/run/ffmpeg /var/log/ffmpeg 2>/dev/null
+
+# 让 init 脚本参与开机流程，这样 task 里的「开机自启」才会生效
+[ -x /etc/init.d/ffmpeg ] && /etc/init.d/ffmpeg enable 2>/dev/null
+
+exit 0

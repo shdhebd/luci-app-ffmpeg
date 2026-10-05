@@ -1,0 +1,284 @@
+# luci-app-ffmpeg translation template
+# This file is distributed under the same license as the luci-app-ffmpeg package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: luci-app-ffmpeg\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Actions"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Add a task"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Applying changes..."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Close"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "FFmpeg Overview"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Input"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Loading..."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Log"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "No tasks have been configured yet."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Operation completed."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Operation failed."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Output"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Please wait"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Read-only access"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Restart"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Running"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Running: %s / %s"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Runtime state of every configured FFmpeg task. The list refreshes automatically."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Start"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Status"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Stop"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Stopped"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Task"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "Task log"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/overview.js
+msgid "The log is empty."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Audio bitrate"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Audio codec"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Copy (no re-encode)"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Debug"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Disable audio"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Disable video"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Enable"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Error"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Every task is one ffmpeg process. Changing a task requires a restart of that task to take effect."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Extra arguments"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "FFmpeg Tasks"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Frame rate"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Info"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Input source"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Log level"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "My task"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Output format"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Output target"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Overwrite output"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Quiet"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Raw ffmpeg options appended right before the output target."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Scale"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Start on boot"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Task name"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Tasks"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Verbose"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Video bitrate"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Video codec"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/tasks.js
+msgid "Warning"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Absolute path of the ffmpeg executable."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Each task is started from this directory."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Enable FFmpeg management"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "FFmpeg Settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "FFmpeg binary"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Global settings"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Global settings shared by every task."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Log directory"
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "One <section>.log file is written per task."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "When disabled, no task is started on boot."
+msgstr ""
+
+#: htdocs/luci-static/resources/view/ffmpeg/settings.js
+msgid "Working directory"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-ffmpeg.json
+msgid "FFmpeg"
+msgstr ""
+
+#: root/usr/share/luci/menu.d/luci-app-ffmpeg.json
+msgid "Settings"
+msgstr ""

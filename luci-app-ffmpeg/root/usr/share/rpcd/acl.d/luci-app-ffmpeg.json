@@ -1,0 +1,17 @@
+{
+	"luci-app-ffmpeg": {
+		"description": "Grant access to the FFmpeg task manager",
+		"read": {
+			"ubus": {
+				"ffmpeg": [ "status", "log" ]
+			},
+			"uci": [ "ffmpeg" ]
+		},
+		"write": {
+			"ubus": {
+				"ffmpeg": [ "control" ]
+			},
+			"uci": [ "ffmpeg" ]
+		}
+	}
+}
